@@ -1,0 +1,28 @@
+name: Default Checkout Probe
+
+on:
+  workflow_run:
+    workflows: [Tests]
+    branches: [main]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Payload
+        run: |
+          echo "EVENT=${{ github.event.workflow_run.event }}"
+          echo "HEAD_BRANCH=${{ github.event.workflow_run.head_branch }}"
+          echo "HEAD_REPO=${{ github.event.workflow_run.head_repository.full_name }}"
+          echo "HEAD_SHA=${{ github.event.workflow_run.head_sha }}"
+          echo "GITHUB_REF=${{ github.ref }} GITHUB_SHA=${{ github.sha }}"
+      - uses: actions/checkout@v3
+      - name: Marker
+        run: |
+          echo "CHECKED_OUT=$(git rev-parse HEAD)"
+          if grep -q PWN_MARKER marker.txt 2>/dev/null; then echo "ATTACKER_CODE=true"; else echo "ATTACKER_CODE=false"; fi
+          cat marker.txt 2>/dev/null || echo "no marker"
