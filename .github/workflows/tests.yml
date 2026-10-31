@@ -1,0 +1,14 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ok
