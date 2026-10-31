@@ -1,0 +1,34 @@
+name: Build Feature Branch Image
+
+on:
+  workflow_run:
+    workflows: [Tests]
+    branches:
+      - 'feature/**'
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-push-feature:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Payload
+        run: |
+          echo "EVENT=${{ github.event.workflow_run.event }}"
+          echo "HEAD_BRANCH=${{ github.event.workflow_run.head_branch }}"
+          echo "HEAD_REPO=${{ github.event.workflow_run.head_repository.full_name }}"
+          echo "HEAD_SHA=${{ github.event.workflow_run.head_sha }}"
+          echo "GITHUB_REF=${{ github.ref }} GITHUB_SHA=${{ github.sha }}"
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+      - name: Marker
+        run: |
+          echo "CHECKED_OUT=$(git rev-parse HEAD)"
+          if grep -q PWN_MARKER marker.txt 2>/dev/null; then echo "ATTACKER_CODE=true"; else echo "ATTACKER_CODE=false"; fi
+          cat marker.txt 2>/dev/null || echo "no marker"
